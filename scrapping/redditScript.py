@@ -56,4 +56,3 @@ def reddit_scrape(app_id, secret, username, password, subreddits):
         df_dict[subreddit] = df #subreddit specific dataframe is stored in dictionary where key is subreddit name
     
     return df_dict
-
