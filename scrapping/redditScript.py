@@ -44,10 +44,10 @@ def reddit_scrape(app_id, secret, username, password, subreddits):
         df = pd.DataFrame({'name': [], 'title': [], 'selftext': [], 'score': []})
 
         for post in res.json()['data']['children']: #extracts each post information
-
+            print(post['data'])
             temp = {
             'name': post['data']['name'],
-            'title': post['data']['title'],
+            'title': [post['data']['title']],
             'selftext': post['data']['selftext'],
             'score': post['data']['score']}
 
