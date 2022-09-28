@@ -9,19 +9,24 @@ import re
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+
 def fact():
     return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+
 
 def getpolarity(text):
     return TextBlob(text).sentiment.polarity
 
+
 def getsubj(text):
     return TextBlob(text).sentiment.subjectivity
+
 
 def getsent(text):
     sia = SentimentIntensityAnalyzer()
     sentiment = sia.polarity_scores(text = text)
     return sentiment
+
 
 def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days = None):
     """
@@ -57,7 +62,7 @@ def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days 
     return df
 
 
-def clean_data(dct, data_set, subreddit):
+def clean_data(dct, data_set, subreddit, left_time:tuple = (9, 30), right_time:tuple = (16, 0)):
     """
     Helper function that normalizes and generates entry in dataframe for a given day - the days/posts are sorted by time of day
     Inputs:
@@ -76,35 +81,34 @@ def clean_data(dct, data_set, subreddit):
         title = title.lower()
         title = re.sub(r"(@\[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)|^rt|http.+?", "", title)
         
+        #Restricts the posts gathered to the times we are concerned about for a given day
         created = datetime.datetime.fromtimestamp(post['created_utc'])
+        if ((created > datetime.datetime(created.year, created.month, created.day, hour=left_time[0],minute=left_time[1])) and 
+            (created < datetime.datetime(created.year, created.month, created.day, hour=right_time[0],minute=right_time[1]))):
 
-        if created > datetime.datetime(created.year, created.month, created.day, hour=9,minute=30) and created < datetime.datetime(created.year, created.month, created.day, hour=16,minute=0):
-            key_date = str(created).split(" ") #isolates the day to be used as key for dictionary and time for lstm
-            polarity = getpolarity(title)
-            subjectivity = getsubj(title)
+            #isolates the day to be used as key for dictionary and time for lstm
+            key_date = str(created).split(" ") 
 
+            #analyze news title and store data in a dictionary
+            data = {}
             SIA = getsent(title)
-            compound = SIA['compound']
-            neg = SIA['neg']
-            neu = SIA['neu']
-            pos = SIA['pos']
+            data['polarity'] = getpolarity(title)
+            data['subjectivity'] = getsubj(title)
+            data['compound'] = SIA['compound']
+            data['neg'] = SIA['neg']
+            data['neu'] = SIA['neu']
+            data['pos'] = SIA['pos']
 
             #isolate only minutes of post - seconds are too percise for stock data
             key_date[1] = key_date[1][:5] + ":00"
 
-            #
-            data = {'polarity':polarity, 'subjectivity':subjectivity, 'neg':neg, 'neu':neu, 'pos':pos, 'compound':compound, 'post_count':1}
-
+            #add stored values to total values for the time
             for key, value in data.items():
                 dct[key_date[0]][subreddit][key_date[1]][key] += value
 
 
-    
-        
-
 def generate_csv(subreddit, relative_days):
     df = gather_data_full(subreddit, relative_days=relative_days)
-    print(df)
-    #df.to_json(f'generated_data_{subreddit}.json', index=True)
+    df.to_json(f'generated_data_{subreddit}.json', index=True)
 
 generate_csv('Economics', 10)
