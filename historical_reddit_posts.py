@@ -59,6 +59,8 @@ def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days 
 
     post_dct = dict(post_dct)
     df = pd.DataFrame.from_dict(post_dct, orient='index')
+    df[f'{subreddit}_times']
+
     return df
 
 

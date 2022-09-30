@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import datetime
 import numpy as np
 import pandas as pd
-
 def get_data_day(x, dataframe, row):
     lst = []
     for i in range(x):
@@ -31,7 +30,7 @@ def plot_x_days_sentiment(x, subreddit, dataframe, data_gather, subplot = plt):
             [dataframe.iloc[i][subreddit][key][point] for i in range(x) for key in dataframe.iloc[i][subreddit]]).astype(float)
         dct_lst[f'{point}'][f'{point}_list'==0] = np.nan
 
-    times = get_time_data_day(x, dataframe)
+    times = [dataframe.iloc[i][subreddit].keys() for i in range(x)]
 
     for key, list in dct_lst.items():
         subplot.bar(times, list, color = data_gather[key], width=.005)
