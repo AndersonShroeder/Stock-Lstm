@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import datetime
 import numpy as np
 import pandas as pd
+import pandas as pd
+#df = pd.read_json('./Datasets/generated_data_Economics.json')
+
 def get_data_day(x, dataframe, row):
     lst = []
     for i in range(x):

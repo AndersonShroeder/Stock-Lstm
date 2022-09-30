@@ -11,7 +11,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 def fact():
-    return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    return defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
 
 
 def getpolarity(text):
@@ -45,7 +45,7 @@ def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days 
     current = int(after.timestamp()) #converts to utc
     before = int(before.timestamp())
 
-    post_dct = defaultdict(fact) #dict where keys are a date and values are a list of post data
+    post_dct = defaultdict(lambda: defaultdict(lambda: defaultdict(float))) #dict where keys are a date and values are a list of post data
 
     while current < before:
             one_day = current + 86400
@@ -59,7 +59,7 @@ def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days 
 
     post_dct = dict(post_dct)
     df = pd.DataFrame.from_dict(post_dct, orient='index')
-    df[f'{subreddit}_times']
+    #df[f'{subreddit}_times']
 
     return df
 
@@ -89,7 +89,8 @@ def clean_data(dct, data_set, subreddit, left_time:tuple = (9, 30), right_time:t
             (created < datetime.datetime(created.year, created.month, created.day, hour=right_time[0],minute=right_time[1]))):
 
             #isolates the day to be used as key for dictionary and time for lstm
-            key_date = str(created).split(" ") 
+            created = str(created)
+            created = created[:-2] +'00'
 
             #analyze news title and store data in a dictionary
             data = {}
@@ -102,15 +103,15 @@ def clean_data(dct, data_set, subreddit, left_time:tuple = (9, 30), right_time:t
             data['pos'] = SIA['pos']
 
             #isolate only minutes of post - seconds are too percise for stock data
-            key_date[1] = key_date[1][:5] + ":00"
+            #key_date[1] = key_date[1][:5] + ":00"
 
             #add stored values to total values for the time
             for key, value in data.items():
-                dct[key_date[0]][subreddit][key_date[1]][key] += value
+                dct[datetime.datetime.strptime(created, '%Y-%m-%d %H:%M:%S')][subreddit][key] += value
 
 
 def generate_csv(subreddit, relative_days):
     df = gather_data_full(subreddit, relative_days=relative_days)
     df.to_json(f'generated_data_{subreddit}.json', index=True)
 
-generate_csv('Economics', 10)
+generate_csv('Economics', 29)
