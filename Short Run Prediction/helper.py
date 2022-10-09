@@ -54,7 +54,7 @@ class Analyzer:
         dct = {}
         for subreddit in subreddits:
             self.dataframe[subreddit] = self.dataframe.apply(lambda row: self.convert(row, subreddit), axis = 1)
-            dct[subreddit]=[self.generate_daily_data(i, self.dataframe, subreddit) for i in range(len(self.dataframe))]
+            dct[subreddit]=[self.generate_daily_data(i, subreddit) for i in range(len(self.dataframe))]
 
         return dct
 
@@ -62,7 +62,7 @@ class Analyzer:
     myFmt = mdates.DateFormatter('%H%:%M:%S')
     def plot_subreddits_day(self, subreddits, plot_args, start_day, end_day, percent_change = False):
             colors = {'neg': 'red','pos':'green'}
-            df_dict = self.generate_daily_data(self.dataframe)
+            df_dict = self.generate_daily_full(self.dataframe)
             for day in range(start_day, end_day+1): 
                     for subreddit in subreddits:
                             fig,ax = plt.subplots()
