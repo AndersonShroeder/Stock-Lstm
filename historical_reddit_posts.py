@@ -28,7 +28,7 @@ def getsent(text):
     return sentiment
 
 
-def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days = None):
+def gather_data_full(subreddits, before = datetime.datetime.now(), relative_days = None):
     """
     Gathers complete post history from a given subreddit and returns a pandas dataframe where the rows represent the day of posting
     and columns are a list of lists where each nested list by index is: 
@@ -40,28 +40,31 @@ def gather_data_full(subreddit, before = datetime.datetime.now(), relative_days 
     Outputs:
         - Returns a pandas dataframe
     """
-
+    lst = [] # contains each dataframe for subreddit
     after = before - relativedelta(days=relative_days) # finds date relative to current date, relative_days ago
-    current = int(after.timestamp()) #converts to utc
     before = int(before.timestamp())
 
-    post_dct = defaultdict(lambda: defaultdict(lambda: defaultdict(float))) #dict where keys are a date and values are a list of post data
+    for subreddit in subreddits:
+        print(subreddit)
+        current = int(after.timestamp()) #converts to utc
+        post_dct = defaultdict(lambda: defaultdict(lambda: defaultdict(float))) #dict where keys are a date and values are a list of post data
 
-    while current < before:
-            one_day = current + 86400
+        while current < before:
+                one_day = current + 86400
 
-            #api call for posts in one given day
-            url = f"https://api.pushshift.io/reddit/search/submission/?after={current}&before={one_day}&subreddit={subreddit}&size=500"
-            r = requests.get(url)
-            data = json.loads(r.text)
-            clean_data(post_dct, data['data'], subreddit)
-            current = one_day
+                #api call for posts in one given day
+                url = f"https://api.pushshift.io/reddit/search/submission/?after={current}&before={one_day}&subreddit={subreddit}&size=500"
+                r = requests.get(url)
+                data = json.loads(r.text)
+                clean_data(post_dct, data['data'], subreddit)
+                current = one_day
 
-    post_dct = dict(post_dct)
-    df = pd.DataFrame.from_dict(post_dct, orient='index')
-    #df[f'{subreddit}_times']
-
-    return df
+        post_dct = dict(post_dct)
+        df = pd.DataFrame.from_dict(post_dct, orient='index')
+        lst.append(df)
+    
+    dataframe = pd.concat(lst, axis=1)
+    return dataframe
 
 
 def clean_data(dct, data_set, subreddit, left_time:tuple = (9, 30), right_time:tuple = (16, 0)):
@@ -112,6 +115,7 @@ def clean_data(dct, data_set, subreddit, left_time:tuple = (9, 30), right_time:t
 
 def generate_csv(subreddit, relative_days):
     df = gather_data_full(subreddit, relative_days=relative_days)
-    df.to_json(f'generated_data_{subreddit}.json', index=True)
+    #df.to_json(f'generated_data_{subreddit}.json', index=True)
+    print(df)
 
-generate_csv('Economics', 29)
+generate_csv(['Economics'], 1)

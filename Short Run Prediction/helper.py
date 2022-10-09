@@ -1,53 +1,86 @@
+import pandas as pd
 import matplotlib.pyplot as plt
-import datetime
-import numpy as np
-import pandas as pd
-import pandas as pd
-#df = pd.read_json('./Datasets/generated_data_Economics.json')
+import matplotlib.dates as mdates
+myFmt = mdates.DateFormatter('%H%:%M:%S')
 
-def get_data_day(x, dataframe, row):
-    lst = []
-    for i in range(x):
-        lst += dataframe.iloc[i][row]
-
-def get_time_data_day(x, dataframe):
-    times = []
-    for i in range(x):
-        date = dataframe.iloc[i]['date']
-        for item in dataframe.iloc[i]['time']:
-            time = item.split(":")
-            times.append(datetime.datetime(date.year,date.month,date.day,int(time[0]),int(time[1])))
-    return times
-
-def plot_x_days_price(x, dataframe, subplot = plt):
-    lst = get_data_day(x, dataframe, 'price')
-    times = get_time_data_day(x, dataframe)
-    subplot.plot(times, lst)
-    return times
+class Analyzer:
+    def __init__(self, subreddits, dataframe):
+        self.subreddits = subreddits
+        self.dataframe = dataframe
 
 
-def plot_x_days_sentiment(x, subreddit, dataframe, data_gather, subplot = plt):
-    dct_lst = {}
-    for point in data_gather.keys():
-        dct_lst[f'{point}'] = np.array(
-            [dataframe.iloc[i][subreddit][key][point] for i in range(x) for key in dataframe.iloc[i][subreddit]]).astype(float)
-        dct_lst[f'{point}'][f'{point}_list'==0] = np.nan
+    #convert subreddit to nested lists containing dict
+    def convert(self, row, subreddit):
+        lst = []
+        for dct in row.loc[subreddit]:
+            lst.append([dct])
+        return lst
+        
 
-    times = [dataframe.iloc[i][subreddit].keys() for i in range(x)]
+    #generate daily data
+    def generate_daily_data(self, index, subreddit):
+        #create a data frame of all possible minute values in a day
+        d = self.dataframe.iloc[index][['date', 'na']].to_dict()
+        d['time'] = pd.date_range(self.dataframe['date'].iat[index], freq='Min', periods=60*24, name='date')
+        df = pd.DataFrame(d)
+        df.set_index(df['time'], inplace = True)
+        df = df[[]]
 
-    for key, list in dct_lst.items():
-        subplot.bar(times, list, color = data_gather[key], width=.005)
-        subplot.bar(times, list, color = data_gather[key], width=.005)
+        #create dataframe for each column we want time series for
+        price_time_df = pd.DataFrame(self.dataframe.iloc[index]['price'], index = self.dataframe.iloc[index]['stock_time'], columns=['price'])
+        percent_change_df = pd.DataFrame(self.dataframe.iloc[index]['percent_change'], index = self.dataframe.iloc[index]['stock_time'], columns=['percent_change'])
+        
+        #create dataframe of sentiment_data
+        lst = [price_time_df, percent_change_df]
+        for subreddit in self.subreddits:
+            reddit_df = pd.DataFrame(self.dataframe.iloc[index][subreddit], index = self.dataframe.iloc[index]['sentiment_time'], columns=['sentiment']).reset_index()
+            sentiment_time_df = pd.json_normalize(reddit_df['sentiment'])
+            sentiment_time_df['index'] = reddit_df['index']
+            sentiment_time_df.set_index(['index'], inplace=True)
+            lst.append(sentiment_time_df)
+        #print(sentiment_time_df)
+        
 
-def plot_x_days(x, subreddit, dataframe):
-    figure, axis = plt.subplots(2,1)
-    plot_x_days_sentiment(x, subreddit, dataframe, {'neg': 'red','pos':'green'},axis[0])
-    plot_x_days_price(x, dataframe, axis[1])
-    #plot_change(1, dataframe, axis[0])
+        joined_df = df.join(lst)
+        joined_df.reset_index(inplace=True)
 
+        pd.to_datetime(joined_df['time'])
+        
 
-def generate_day_frame(row, subreddit):
-    df = pd.DataFrame.from_dict(row[subreddit], orient='index')
-    return df
+        self.dataframe = joined_df
 
+    #generate a list of dataframes for each day in the dataset
+    def generate_daily_full(self, subreddits):
+        dct = {}
+        for subreddit in subreddits:
+            self.dataframe[subreddit] = self.dataframe.apply(lambda row: self.convert(row, subreddit), axis = 1)
+            dct[subreddit]=[self.generate_daily_data(i, self.dataframe, subreddit) for i in range(len(self.dataframe))]
 
+        return dct
+
+    import matplotlib.dates as mdates
+    myFmt = mdates.DateFormatter('%H%:%M:%S')
+    def plot_subreddits_day(self, subreddits, plot_args, start_day, end_day, percent_change = False):
+            colors = {'neg': 'red','pos':'green'}
+            df_dict = self.generate_daily_data(self.dataframe)
+            for day in range(start_day, end_day+1): 
+                    for subreddit in subreddits:
+                            fig,ax = plt.subplots()
+                            if not percent_change:
+                                    ax.plot(df_dict[subreddit][day].time, df_dict[subreddit][day].price, color="black",)
+                            else:
+                                    ax.plot(df_dict[subreddit][day].time, df_dict[subreddit][day].percent_change, color="blue")
+                                    ax.set_ylim([-.3, .3])
+
+                            ax.xaxis.set_major_formatter(myFmt)
+
+                            # set x-axis label
+                            ax.set_xlabel("Time", fontsize = 14)
+                            # set y-axis label
+                            ax.set_ylabel("Price", color="red", fontsize=14)
+                            ax2=ax.twinx()
+                            # make a plot with different y-axis using second axis object
+                            for arg in plot_args:
+                                    ax2.bar(df_dict[subreddit][day].time, df_dict[subreddit][day][arg] ,color=colors[arg], width = .002)
+                            ax2.set_ylabel("Sentiment",color="black",fontsize=14)
+                            plt.show()
