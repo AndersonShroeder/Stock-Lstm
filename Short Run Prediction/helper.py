@@ -47,12 +47,12 @@ class Analyzer:
         pd.to_datetime(joined_df['time'])
         
 
-        self.dataframe = joined_df
+        return joined_df
 
     #generate a list of dataframes for each day in the dataset
-    def generate_daily_full(self, subreddits):
+    def generate_daily_full(self):
         dct = {}
-        for subreddit in subreddits:
+        for subreddit in self.subreddits:
             self.dataframe[subreddit] = self.dataframe.apply(lambda row: self.convert(row, subreddit), axis = 1)
             dct[subreddit]=[self.generate_daily_data(i, subreddit) for i in range(len(self.dataframe))]
 
@@ -61,8 +61,8 @@ class Analyzer:
     import matplotlib.dates as mdates
     myFmt = mdates.DateFormatter('%H%:%M:%S')
     def plot_subreddits_day(self, subreddits, plot_args, start_day, end_day, percent_change = False):
-            colors = {'neg': 'red','pos':'green'}
-            df_dict = self.generate_daily_full(self.dataframe)
+            colors = {'neg': 'red','pos':'green', 'neu': 'blue'}
+            df_dict = self.generate_daily_full()
             for day in range(start_day, end_day+1): 
                     for subreddit in subreddits:
                             fig,ax = plt.subplots()
