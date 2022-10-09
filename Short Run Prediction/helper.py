@@ -7,6 +7,7 @@ class Analyzer:
     def __init__(self, subreddits, dataframe):
         self.subreddits = subreddits
         self.dataframe = dataframe
+        self.df_dict = self.generate_daily_full()
 
 
     #convert subreddit to nested lists containing dict
@@ -62,14 +63,13 @@ class Analyzer:
     myFmt = mdates.DateFormatter('%H%:%M:%S')
     def plot_subreddits_day(self, subreddits, plot_args, start_day, end_day, percent_change = False):
             colors = {'neg': 'red','pos':'green', 'neu': 'blue'}
-            df_dict = self.generate_daily_full()
             for day in range(start_day, end_day+1): 
                     for subreddit in subreddits:
                             fig,ax = plt.subplots()
                             if not percent_change:
-                                    ax.plot(df_dict[subreddit][day].time, df_dict[subreddit][day].price, color="black",)
+                                    ax.plot(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day].price, color="black",)
                             else:
-                                    ax.plot(df_dict[subreddit][day].time, df_dict[subreddit][day].percent_change, color="blue")
+                                    ax.plot(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day].percent_change, color="blue")
                                     ax.set_ylim([-.3, .3])
 
                             ax.xaxis.set_major_formatter(myFmt)
@@ -81,6 +81,6 @@ class Analyzer:
                             ax2=ax.twinx()
                             # make a plot with different y-axis using second axis object
                             for arg in plot_args:
-                                    ax2.bar(df_dict[subreddit][day].time, df_dict[subreddit][day][arg] ,color=colors[arg], width = .002)
+                                    ax2.bar(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day][arg] ,color=colors[arg], width = .002)
                             ax2.set_ylabel("Sentiment",color="black",fontsize=14)
                             plt.show()
