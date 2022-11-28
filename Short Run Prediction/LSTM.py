@@ -43,7 +43,6 @@ class LSTM:
             label = df_as_np[i+n][0]
             y.append(label)
 
-        scaled_y = scaler.fit_transform(np.array(y).reshape(-1,1))
 
         return index, np.array(X), np.array(y)
 
@@ -99,7 +98,7 @@ class LSTM:
         initial_slice = deepcopy(self.X_train)[0].reshape(1,self.n,len(self.cols))
         predictions = []
 
-        for i in range(len(self.X_test)):
+        for i in range(1):
             prediction = self.predict(initial_slice)
             predictions.append(prediction)
             initial_slice = initial_slice[0][1:]
@@ -108,6 +107,15 @@ class LSTM:
             new_slice = new_slice.reshape(1, new_slice.shape[0])
             initial_slice = np.append(initial_slice, new_slice, axis = 0).reshape(1,self.n,len(self.cols))
             
+        for i in range(len(self.y_test) - 1):
+            prediction = self.predict(initial_slice)
+            predictions.append(prediction)
+            initial_slice = initial_slice[0][1:]
+            new_slice = initial_slice[-1]
+            new_slice[0] = prediction
+            new_slice = new_slice.reshape(1, new_slice.shape[0])
+            initial_slice = np.append(initial_slice, new_slice, axis = 0).reshape(1,self.n,len(self.cols))
+            initial_slice[0][1][0] = self.y[i]
 
         return predictions
 
