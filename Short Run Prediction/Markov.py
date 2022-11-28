@@ -1,4 +1,5 @@
 from collections import defaultdict
+from Analyzer import Analyzer
 import random
 
 class Markov(Analyzer):
