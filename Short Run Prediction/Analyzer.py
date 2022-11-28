@@ -103,56 +103,49 @@ class Analyzer:
         Adds a column to the daily dataframes indicating the markov bin the time interval falls into
         """
         for subreddit in self.subreddits:
-            for df in self.df_dict[subreddit]:
+            df = self.df_dict[subreddit]
 
-                #generates a numpy array populated with values that correspond to precent changes -> new markov_bins column
-                df['markov_bins'] = np.where(
-                    (df['percent_change'] < -.1), 0, np.where(
-                        ((df['percent_change'] > -.1) & (df['percent_change'] < 0)), 1, np.where(
-                            ((df['percent_change'] < .1) & (df['percent_change'] > 0)), 2, np.where(
-                                (df['percent_change'] > .1), 3, np.nan
-                            ))))
+            #generates a numpy array populated with values that correspond to precent changes -> new markov_bins column
+            df['markov_bins'] = np.where(
+                (df['percent_change'] < -.1), 0, np.where(
+                    ((df['percent_change'] > -.1) & (df['percent_change'] < 0)), 1, np.where(
+                        ((df['percent_change'] < .1) & (df['percent_change'] > 0)), 2, np.where(
+                            (df['percent_change'] > .1), 3, np.nan
+                        ))))
 
-                self.complete_markov[subreddit] += list(df.markov_bins.dropna())
+            self.complete_markov[subreddit] += list(df.markov_bins.dropna())
 
 
-    def plot_markov_hist(self, start_day, end_day):
+    def plot_markov_hist(self):
 
         #iterate through the range of start_day and end_day -> create a dictionary where the key is bin # and key is the count
-        for day in range(start_day, end_day+1):
-            lst = np.array(self.df_dict['Economics'][day].markov_bins.dropna())
-            unique, counts = np.unique(lst, return_counts=True)
-            dct = dict(zip(unique,counts))
-            plt.bar(unique, counts)
-            plt.show()
+        lst = np.array(self.df_dict['Economics'].markov_bins.dropna())
+        unique, counts = np.unique(lst, return_counts=True)
+        dct = dict(zip(unique,counts))
+        plt.bar(unique, counts)
+        plt.show()
             
 
 
-    def plot_subreddits_day(self, subreddits, plot_args, start_day, end_day, percent_change = False):
-        colors = {'neg': 'red','pos':'green', 'neu': 'blue'}
-        for day in range(start_day, end_day+1): 
-            for subreddit in subreddits:
-                fig,ax = plt.subplots()
-                if not percent_change:
-                    ax.plot(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day].price, color="black",)
-                else:
-                    ax.plot(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day].percent_change, color="blue")
-                    ax.set_ylim([-.3, .3])
-
-                #ax.xaxis.set_major_formatter(myFmt)
-
-                # set x-axis label
-                ax.set_xlabel("Time", fontsize = 14)
-                # set y-axis label
-                ax.set_ylabel("Price", color="red", fontsize=14)
-                ax2=ax.twinx()
-                # make a plot with different y-axis using second axis object
-                for arg in plot_args:
-                    ax2.bar(self.df_dict[subreddit][day].time, self.df_dict[subreddit][day][arg] ,color=colors[arg], width = .002)
-                ax2.set_ylabel("Sentiment",color="black",fontsize=14)
-                fig.set_figwidth(15)
-                fig.set_figheight(5)
-                plt.show()
+    def plot_subreddits_day(self, subreddits):
+        for subreddit in subreddits:
+            fig,ax = plt.subplots()
+            ax.plot(self.df_dict[subreddit].index, self.df_dict[subreddit].price, color="blue")
+            
+            # set x-axis label
+            ax.set_xlabel("Time", fontsize = 14)
+            # set y-axis label
+            ax.set_ylabel("Price", color="red", fontsize=14)
+            ax2=ax.twinx()
+            # make a plot with different y-axis using second axis object
+            ax2.bar(self.df_dict[subreddit].index, self.df_dict[subreddit].neg)
+            ax2.bar(self.df_dict[subreddit].index, self.df_dict[subreddit].pos, color='green')
+            ax2.set_ylabel("Sentiment",color="black",fontsize=14)
+            fig.set_figwidth(15)
+            fig.set_figheight(5)
+            plt.show()
+           
+            
 
 
     def generate_train_test(self, index):

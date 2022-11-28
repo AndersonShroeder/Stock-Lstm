@@ -1,3 +1,13 @@
+from copy import deepcopy
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import layers
+from sklearn.preprocessing import MinMaxScaler
+from matplotlib.pyplot import figure
+import datetime
+import numpy as np
+import matplotlib.pyplot as plt
+
 class LSTM:
     def __init__(self, input_df, cols=None, n=3):
         self.model = None
