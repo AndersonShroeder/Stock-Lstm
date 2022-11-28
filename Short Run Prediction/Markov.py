@@ -1,6 +1,8 @@
 from collections import defaultdict
 from Analyzer import Analyzer
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Markov(Analyzer):
     
