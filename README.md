@@ -1,4 +1,5 @@
 # Stock Prediction Effectiveness
+
 <h2>1 - Data Preperation</h2>
 <h3>1.1 - Importing Data/Libraries</h3>
 <p>We begin by importing the necessary libraries and the following classes:</p>
@@ -24,13 +25,32 @@ an instance of this class must be created and then the optimal_degree method mus
 <p>We Now find the percent chagne which can be done by subtracting the prices column by the prices column shifted down one. </p>
 <h2>2 - Visualizing Trends In News Sentiment and Stock Prices</h2>
 <h3>2.1 - Plotting Sentiment Versus Price</h3>
-![](images/output.png)
+<p>This plot showcases the sentiment intensities at given time steps along with the stock price. In this plot the blue bars are the negative sentiment and green bars
+are positive sentiment.</p>
+<p align="center">
+  <img src="images/output.png"/>
+</p>
+
 <h2>3 - Markov Chains</h2>
 <h3>3.1 - Plotting Hist</h3>
-<h3>3.2 - Nth Degree Markov Chains<h3>
-<h3>3.3 - Optimizing Nth Degree Markov Chains<h3>
+<p> We first showcase a histogram of the frequency of the markov bins. This will show which bins are more likely to be guessed and give an idea on how much the
+stock might fluctuate, considering more occurances of the larger shifts would indicate a larger percentage of dramatic shifts in price, thus the stock is more volatile.</p>
+<p align="center"">
+  <img src="images/output1.png"/>
+</p>
+<h3>3.2 - Nth Degree Markov Chains</h3>
+<p> Utilizing Nth degree markov chains, we can predict price movements to a varying degree of accuracy depending on the degree of the chain. Therefore, we must find the optimal degree.</p>
+<h3>3.3 - Optimizing Nth Degree Markov Chains</h3>
+<p> We can find the optimal degree by training models with a range of degrees and pick the degree that produced the highest accuracy and lowest MSE. This graph shows the results of testing the degrees from 0-9. The highest accuracy achieved on this graph was 41.2%, meaning the model could correctly categorize the direction and magnitude of the stock movement 41.2% of the time.</p>
+<p align="center">
+  <img src="images/output2.png"/>
+</p>
+<p> The resulting optimal degree will not always be the optimal degree for every markov chain trained on the same data, considering that the optimal degree is largely dependent on how the individual model was trained. Since markov chains are largely based on chance, the chance there is a variation in the trained models is high.</p>
 <h2>4 - Univariate LSTM Network</h2>
 <h3>4.1 - Processing And Splititng Data</h3>
+<p align="center">
+  <img src="images/3.png"/>
+</p>
 <h3>4.2 - Fitting The Model</h3>
 <h3>4.3 - Plotting True And Predicted Values</h3>
 <h3>4.4 - Comparing n Values</h3>
